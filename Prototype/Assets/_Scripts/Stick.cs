@@ -4,55 +4,51 @@ using UnityEngine;
 
 public sealed class Stick : MonoBehaviour
 {
-    private PlayerController playerController;
+    [SerializeField] private PlayerController playerController;
+    private Transform parent;
+
+    [Space(20)]
+    [Header("Stick properties")]
     [SerializeField] private float hitSpeed = 0.2f;
     [SerializeField] private float frequency = 0.8f;
-
-    private Vector3 startRotation;
-    private float horizontal;
-    private float startZ;
-    private float endZ;
+    private float currentSide;
     private bool isReleased = true;
-    private bool isFacingRight;
 
-    private void Awake()
-    {
-        playerController = GetComponentInParent<PlayerController>();
-    }
+    private void Awake() => parent = GetComponentInChildren<Transform>();
 
-    private void Update()
+    public void HitAndAllow(bool canAttack)
     {
-        if (Input.GetMouseButtonDown(0) && isReleased)
+        if (isReleased)
         {
             isReleased = false;
-            float currentYRotation = transform.rotation.eulerAngles.y;
-            float currentZRotation = transform.rotation.eulerAngles.z;
-            startRotation = new Vector3(0, currentYRotation, currentZRotation);
-            if (playerController.isFacingRight)
-                endZ = currentZRotation + 100;
-            else
-                endZ = currentZRotation - 100;
-
-            transform.DORotate(new Vector3(0, currentYRotation, endZ), hitSpeed).
-                SetEase(Ease.Linear).
-                OnComplete(() => transform.DORotate(startRotation, hitSpeed));
-            StartCoroutine(ReleaseWthDelay());
+            playerController.canAttack = canAttack;
+            StartCoroutine(ReleaseWithDelay());
+            AnimateAttack();
         }
     }
 
-    private void FixedUpdate()
-    {
-        horizontal = Input.GetAxis("Horizontal");
-    }
-
-    private void OnTriggerEnter2D()
-    {
-        Debug.Log("Hitting!");
-    }
-
-    private IEnumerator ReleaseWthDelay()
+    private IEnumerator ReleaseWithDelay()
     {
         yield return new WaitForSeconds(frequency);
         isReleased = true;
+    }
+
+    private void AnimateAttack()
+    {
+        float currentZRotation = transform.rotation.eulerAngles.z;
+        currentSide = parent.transform.localScale.x;
+        float endZ = currentSide > 0 ? currentZRotation + 90 : currentZRotation - 90;
+
+        transform.DORotate(new Vector3(0, -10, endZ), hitSpeed).
+            SetEase(Ease.Linear).
+            OnComplete(() => ResetRotation());
+    }
+
+    private void ResetRotation()
+    {
+        float currentZRotation = transform.rotation.eulerAngles.z;
+        currentSide = parent.transform.localScale.x;
+        int endZ = currentZRotation < 0 ? -20 : 20;
+        transform.DORotate(new Vector3(0, 180, endZ), hitSpeed);
     }
 }
