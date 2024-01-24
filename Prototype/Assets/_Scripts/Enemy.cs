@@ -1,9 +1,11 @@
 using System.Collections;
 using UnityEngine;
 
-public sealed class Enemy : MonoBehaviour, IHealthObserver
+public sealed class Enemy : MonoBehaviour
 {
-    [SerializeField] private PlayerController playerController;
+    public EntityHealth health = new EntityHealth();
+    [SerializeField] private Player playerController;
+    [SerializeField] private EnemyHealthDisplay healthDisplay;
     private Stick stick;
     private ObjectFlip flip;
     private Transform target;
@@ -16,18 +18,26 @@ public sealed class Enemy : MonoBehaviour, IHealthObserver
     private void Awake()
     {
         stick = GetComponentInChildren<Stick>();
-        target = FindObjectOfType<PlayerController>().transform;
+        target = FindObjectOfType<Player>().transform;
 
         flip = new ObjectFlip(transform);
     }
 
-    private void OnEnable() => playerController.OnMove += () => StartCoroutine(UpdateCoroutine());
+    private void OnEnable()
+    {
+        playerController.OnMove += () => StartCoroutine(UpdateCoroutine());
+        healthDisplay.OnDie += () => Destroy(gameObject);
+    }
 
-    private void OnDestroy() => playerController.OnMove -= () => StartCoroutine(UpdateCoroutine());
+    private void OnDestroy()
+    {
+        playerController.OnMove -= () => StartCoroutine(UpdateCoroutine());
+        healthDisplay.OnDie -= () => Destroy(gameObject);
+    }
 
     private IEnumerator UpdateCoroutine()
     {
-        while (true)
+        while (target != null)
         {
             AttackOrChase();
             CheckOrFlip();
@@ -50,10 +60,5 @@ public sealed class Enemy : MonoBehaviour, IHealthObserver
     {
         float horizontalInput = Mathf.Sign(target.position.x - transform.position.x);
         flip.CheckOrFlip(horizontalInput);
-    }
-
-    public void Execute(int healthTaken)
-    {
-        throw new System.NotImplementedException();
     }
 }

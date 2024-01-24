@@ -1,9 +1,12 @@
 using System;
 using UnityEngine;
 
-public sealed class PlayerController : MonoBehaviour, IHealthObserver
+public sealed class Player : MonoBehaviour
 {
+    public EntityHealth health = new EntityHealth();
     public Action OnMove;
+
+    [SerializeField] private PlayerHealthDisplay healthDisplay;
     [SerializeField] private Transform footPoint;
     private Stick stick;
     private ObjectFlip flip;
@@ -18,10 +21,10 @@ public sealed class PlayerController : MonoBehaviour, IHealthObserver
     [SerializeField] private int jumpForce = 7;
     [SerializeField] private int hitAttempts = 3;
     private int attemptCount = 0;
-
-    public bool canAttack = false;
     private float horizontal;
+    private bool canAttack = false;
     private bool hasMoved = false;
+    private bool hasAttacked = false;
 
     private void Awake()
     {
@@ -30,6 +33,10 @@ public sealed class PlayerController : MonoBehaviour, IHealthObserver
 
         flip = new ObjectFlip(transform);
     }
+
+    private void OnEnable() => healthDisplay.OnDie += () => Destroy(gameObject);
+
+    private void OnDestroy() => healthDisplay.OnDie -= () => Destroy(gameObject);
 
     private void Update()
     {
@@ -85,7 +92,10 @@ public sealed class PlayerController : MonoBehaviour, IHealthObserver
     private void Attack()
     {
         if (attemptCount < hitAttempts)
+        {
             HitAndAllow(true);
+            hasAttacked = true;
+        }
         else
         {
             attemptCount = 0;
@@ -95,8 +105,6 @@ public sealed class PlayerController : MonoBehaviour, IHealthObserver
 
     private void HitAndAllow(bool flag) => stick.HitAndAllow(flag);
 
-    public void Execute(int healthTaken)
-    {
-        throw new NotImplementedException();
-    }
+    public bool CanAttack { get => canAttack; set => canAttack = value; }
+    public bool HasAttacked { get => hasAttacked; set => hasAttacked = value; }
 }
