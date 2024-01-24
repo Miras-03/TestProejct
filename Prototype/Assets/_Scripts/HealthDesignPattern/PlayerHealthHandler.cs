@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public sealed class PlayerHealthDisplay : MonoBehaviour, IHealthObserver
+public sealed class PlayerHealthHandler : MonoBehaviour, IHealthObserver
 {
     public Action OnDie;
     [SerializeField] private Player player;
     [SerializeField] private Image circleImage;
-    private Coroutine blinkCoroutine;
     private Stack<Image> circles = new Stack<Image>();
+    private Coroutine blinkCoroutine;
 
     [Range(1f, 10f)]
     [SerializeField] private int circleCount = 3;
@@ -23,6 +23,9 @@ public sealed class PlayerHealthDisplay : MonoBehaviour, IHealthObserver
     [SerializeField] private float blinkTimePerFrame = 0.5f;
 
     private int attackedCount = 0;
+
+    private const int minHealth = 1;
+    private const int attackCountPermited = 2;
 
     private void Start() => FillCircles();
 
@@ -39,9 +42,9 @@ public sealed class PlayerHealthDisplay : MonoBehaviour, IHealthObserver
     public void ExecuteDamageOrDie()
     {
         attackedCount++;
-        if (circles.Count > 0)
+        if (circles.Count > minHealth)
         {
-            if (attackedCount < 2)
+            if (attackedCount < attackCountPermited)
                 blinkCoroutine = StartCoroutine(BlinkAndDamage());
             else
             {
@@ -51,13 +54,16 @@ public sealed class PlayerHealthDisplay : MonoBehaviour, IHealthObserver
             }
         }
         else
+        {
+            CheckOrTakeDamage();
             OnDie();
+        }
     }
 
     private IEnumerator BlinkAndDamage()
     {
         int i = 0;
-        while (i < blinkCountPerFrame)
+        while (i < blinkCountPerFrame && !player.HasAttacked)
         {
             SetLastCircle(false);
             yield return new WaitForSeconds(blinkTimePerFrame);
@@ -73,7 +79,7 @@ public sealed class PlayerHealthDisplay : MonoBehaviour, IHealthObserver
     private void CheckOrTakeDamage()
     {
         SetLastCircle(true);
-        if (!player.HasAttacked && attackedCount >= 2)
+        if (!player.HasAttacked && attackedCount >= attackCountPermited)
         {
             Destroy(circles.Pop());
             if (circles.Count > 0)

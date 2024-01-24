@@ -5,7 +5,7 @@ public sealed class Enemy : MonoBehaviour
 {
     public EntityHealth health = new EntityHealth();
     [SerializeField] private Player playerController;
-    [SerializeField] private EnemyHealthDisplay healthDisplay;
+    [SerializeField] private EnemyHealthHandler healthDisplay;
     private Stick stick;
     private ObjectFlip flip;
     private Transform target;

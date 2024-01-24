@@ -3,10 +3,10 @@ using UnityEngine;
 
 public sealed class Player : MonoBehaviour
 {
-    public EntityHealth health = new EntityHealth();
     public Action OnMove;
+    public EntityHealth health = new EntityHealth();
 
-    [SerializeField] private PlayerHealthDisplay healthDisplay;
+    [SerializeField] private PlayerHealthHandler healthDisplay;
     [SerializeField] private Transform footPoint;
     private Stick stick;
     private ObjectFlip flip;

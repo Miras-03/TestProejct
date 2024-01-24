@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public sealed class EnemyHealthDisplay : MonoBehaviour, IHealthObserver
+public sealed class EnemyHealthHandler : MonoBehaviour, IHealthObserver
 {
     public Action OnDie;
     [SerializeField] private Enemy enemy;
@@ -16,7 +16,7 @@ public sealed class EnemyHealthDisplay : MonoBehaviour, IHealthObserver
 
     private void FillCircles()
     {
-        for (int i = 0; i < circleCount; i++)
+        for (int i = 0; i < circleCount; i++) 
             circles.Push(Instantiate(circle, transform));
     }
 
@@ -26,10 +26,8 @@ public sealed class EnemyHealthDisplay : MonoBehaviour, IHealthObserver
 
     public void ExecuteDamageOrDie()
     {
-            Destroy(circles.Pop());
-        if (circles.Count < 1)
-        {
+        Destroy(circles.Pop());
+        if (circles.Count < 1) 
             OnDie();
-        }
     }
 }
